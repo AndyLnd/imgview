@@ -17,7 +17,7 @@ func main() {
 	maxWidth := 80
 	maxHeight := 80
 
-	// The ratio of height to width for a single character, this also influences maxHeight.
+	// The ratio of height to width for a single character.
 	// 0.5 means that 1 width == 0.5 height
 	ratio := 0.5
 
@@ -38,19 +38,23 @@ func main() {
 		os.Exit(3)
 	}
 
-	// TODO: do the resize in one single call
-	ratioImg := resize.Resize(uint(img.Bounds().Dx()), uint(float64(img.Bounds().Dy())*ratio), img, resize.Lanczos3)
-	thumb := resize.Thumbnail(uint(maxWidth), uint(maxHeight), ratioImg, resize.Lanczos3)
+	oriWidth := float64(img.Bounds().Dx())
+	oriHeight := float64(img.Bounds().Dy())
+	scale := oriWidth / float64(maxWidth)
+	if oriHeight/float64(maxHeight) < scale {
+		scale = oriHeight / float64(maxHeight)
+	}
+	smallImg := resize.Resize(uint(oriWidth/scale), uint(oriHeight/scale*ratio), img, resize.Lanczos3)
 
-	imgWidth := thumb.Bounds().Dx()
-	imgHeight := thumb.Bounds().Dy()
+	imgWidth := smallImg.Bounds().Dx()
+	imgHeight := smallImg.Bounds().Dy()
 	greys := strings.Split(" .:-=+*#@", "")
 	numGreys := len(greys)
 	divideBy := 3 * (65536 / numGreys)
 	outStr := ""
 	for y := 0; y < imgHeight; y++ {
 		for x := 0; x < imgWidth; x++ {
-			r, g, b, _ := thumb.At(x, y).RGBA()
+			r, g, b, _ := smallImg.At(x, y).RGBA()
 			result := int(r+g+b) / divideBy
 			if result >= numGreys {
 				result = numGreys - 1
