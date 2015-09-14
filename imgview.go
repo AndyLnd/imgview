@@ -11,12 +11,16 @@ import (
 	"strings"
 )
 
-var img image.Image
-
 func main() {
+
+	// Maximum width and height of the displayed image, measured in chars
 	maxWidth := 80
 	maxHeight := 80
-	ratio := .5
+
+	// The ratio of height to width for a single character, this also influences maxHeight.
+	// 0.5 means that 1 width == 0.5 height
+	ratio := 0.5
+
 	if len(os.Args) < 2 {
 		fmt.Printf("Please give filename.\ni.e.\nimgview image.ext\n")
 		os.Exit(1)
@@ -33,12 +37,14 @@ func main() {
 		fmt.Println(err)
 		os.Exit(3)
 	}
+
+	// TODO: do the resize in one single call
 	ratioImg := resize.Resize(uint(img.Bounds().Dx()), uint(float64(img.Bounds().Dy())*ratio), img, resize.Lanczos3)
 	thumb := resize.Thumbnail(uint(maxWidth), uint(maxHeight), ratioImg, resize.Lanczos3)
+
 	imgWidth := thumb.Bounds().Dx()
 	imgHeight := thumb.Bounds().Dy()
 	greys := strings.Split(" .:-=+*#@", "")
-	//greys := strings.Split(" ░▒▓█", "")
 	numGreys := len(greys)
 	divideBy := 3 * (65536 / numGreys)
 	outStr := ""
@@ -49,7 +55,7 @@ func main() {
 			if result >= numGreys {
 				result = numGreys - 1
 			}
-			outStr += string(greys[result])
+			outStr += greys[result]
 		}
 		outStr += "\n"
 	}
